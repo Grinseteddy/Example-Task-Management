@@ -1,0 +1,12 @@
+asyncapi: 2.6.0
+id:
+info:
+  title: Title
+  version: 1.0.0
+  description: Title
+
+servers:
+  test:
+    url: confluent.prod.my-company.com:8092
+
+channels:
