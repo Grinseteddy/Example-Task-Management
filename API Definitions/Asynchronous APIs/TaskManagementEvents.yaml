@@ -1,0 +1,12 @@
+asyncapi: 2.6.0
+id:
+info:
+  title: Task Management Events
+  version: 1.0.0
+  description: Events to create and monitor tasks
+
+servers:
+  test:
+    url: confluent.prod.my-company.com:8092
+
+channels:

@@ -1,9 +1,11 @@
 openapi: 3.0.3
 info:
-  title: Title
-  description: Title
+  title: Task Management
+  description: APIs to create, manipulate, and monitor tasks
   version: 1.0.0
 servers:
-  - url: 'https'
+  - url: 'https://apis.mycompany.com/task-management'
+  - url: 'https://test.apis.mycompany.com/task-management'
+  - url: 'https://dev.apis.mycompany.com/task-management'
 paths:
   
