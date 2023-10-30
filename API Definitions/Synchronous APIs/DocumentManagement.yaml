@@ -1,11 +1,147 @@
 openapi: 3.0.3
 info:
   title: Document Management
-  description: API to create and manipulate documents
+  description: |
+    API to create and manipulate documents
+    - Document needs to be created
+    - Document needs to be updated
+    - Document needs to be downloaded
+    - (in the current sample document list is not necessary but will be included in the API)
+    - (in the current sample deletion of a document is not necessary but will be included in the API)
   version: 1.0.0
 servers:
   - url: 'https://apis.mycompany.com/document-management'
   - url: 'https://test.apis.mycompany.com/document-management'
   - url: 'https://dev.apis.mycompany.com/document-management'
 paths:
+  /documents:
+    get:
+      summary: Delivers back all documents
+      operationId: getDocuments
+      responses:
+        200:
+          $ref: '#/components/responses/Documents'
+
+  /document:
+    post:
+      summary: Creates a new document based on
+      operationId: createDocument
+      requestBody:
+        $ref: '#/components/requestBodies/NewDocument'
+      responses:
+        200:
+          $ref: '#/components/responses/DocumentReference'
+  /document/{id}:
+    get:
+      summary: Delivers back a document based on its id
+      operationId: getDocumentById
+      parameters:
+        - $ref: '#/components/parameters/documentId'
+      responses:
+        200:
+          $ref: '#/components/responses/DocumentReference'
+
+    put:
+      summary: Changes an existing document
+      operationId: changeDocumentById
+      parameters:
+        - $ref: '#/components/parameters/documentId'
+      requestBody:
+        $ref: '#/components/requestBodies/Document'
+      responses:
+        200:
+          $ref: '#/components/responses/DocumentReference'
+
+
+    # optional
+    delete:
+      summary: Deletes a particular document
+      operationId: deleteDocumentById
+      parameters:
+        - $ref: '#/components/parameters/documentId'
+      responses:
+        200:
+          description: Successful operation
+
+components:
+  requestBodies:
+    NewDocument:
+      description: A document which should be created in the document management system
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DocumentToBeCreated'
+    Document:
+      description: A full document to be changed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Document'
+  parameters:
+    documentId:
+      name: id
+      in: path
+      schema:
+        type: string
+        required: true
+        format: uuid
+        example: 239a2c52-e66c-40d1-bf7f-f61097c49703
+  responses:
+    DocumentReference:
+      description: Delivers back the reference to a created or changed document
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Reference'
+    Documents:
+      description: Delivers back documents
+      content:
+        application/json:
+          schema:
+            type: array
+            minItems: 0
+            items:
+              $ref: '#/components/schemas/Document'
+  schemas:
+    DocumentToBeCreated:
+      description: A document which should be uploaded and created in the document management system
+      type: object
+
+    Document:
+      description: A document which can be downloaded and manipulated
+      type: object
+      required:
+        - self
+      properties:
+        self:
+          description: Self id of the document
+          type: string
+          format: uuid
+          example: 239a2c52-e66c-40d1-bf7f-f61097c49703
+
+    Reference:
+      description: Reference to an object to access it directly
+      type: object
+      required:
+        - id
+        - reference
+      properties:
+        type:
+          description: Delivers back the type of the delivered back object
+          type: string
+          minLength: 2
+          maxLength: 2054
+          enum:
+            - Document
+          example: Document
+        id:
+          description: Self id of the document
+          type: string
+          format: uuid
+          example: 239a2c52-e66c-40d1-bf7f-f61097c49703
+        reference:
+          description: URI to access the docuement
+          type: string
+          format: uri
+          example: https://apis.mycompany.com/document-management/document/239a2c52-e66c-40d1-bf7f-f61097c49703
   
