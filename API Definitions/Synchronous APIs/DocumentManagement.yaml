@@ -10,6 +10,9 @@ info:
     - (in the current sample deletion of a document is not necessary but will be included in the API)
   version: 1.0.0
 servers:
+# Servers should be filled as good as you can
+# In an early state of work it might be that you don't have a real server name
+# But give it even a mock server name to make the base path explicit
   - url: 'https://apis.mycompany.com/document-management'
   - url: 'https://test.apis.mycompany.com/document-management'
   - url: 'https://dev.apis.mycompany.com/document-management'
