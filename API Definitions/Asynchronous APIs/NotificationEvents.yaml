@@ -1,9 +1,9 @@
 asyncapi: 2.6.0
 id:
 info:
-  title: Title
+  title: Notification Service - providing events to create notifications for a user
   version: 1.0.0
-  description: Title
+  description: Notification Service - providing events to create notifications for a user
 
 servers:
   test:

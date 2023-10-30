@@ -1,9 +1,11 @@
 openapi: 3.0.3
 info:
-  title: Title
-  description: Title
+  title: Document Management
+  description: API to create and manipulate documents
   version: 1.0.0
 servers:
-  - url: 'https'
+  - url: 'https://apis.mycompany.com/document-management'
+  - url: 'https://test.apis.mycompany.com/document-management'
+  - url: 'https://dev.apis.mycompany.com/document-management'
 paths:
   
