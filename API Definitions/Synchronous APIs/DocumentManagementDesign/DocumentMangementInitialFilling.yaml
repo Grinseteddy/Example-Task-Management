@@ -1,0 +1,14 @@
+openapi: 3.0.3
+info:
+  # Title can be the name of the bounded context
+  title: Document Management
+  description: |
+    Document Management API defined as consumer to upload and download documents
+  version: 1.0.0
+servers:
+  # Servers should be given - even though the real servers don't exist yet
+  - url: 'https://apis.mycompany.com/document-management/'
+  - url: 'https://test-apis.mycompany.com/document-management/'
+  - url: 'https://dev-apis.mycompany.com/document-management/'
+paths:
+  
