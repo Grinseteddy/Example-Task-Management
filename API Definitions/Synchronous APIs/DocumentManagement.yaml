@@ -2,112 +2,291 @@ openapi: 3.0.3
 info:
   title: Document Management
   description: |
-    API to create and manipulate documents
-    - Document needs to be created
-    - Document needs to be updated
-    - Document needs to be downloaded
-    - (in the current sample document list is not necessary but will be included in the API)
-    - (in the current sample deletion of a document is not necessary but will be included in the API)
+    Document Management API defined as consumer to upload and download documents
+    - Create document with post
+    - Download particular document with get
+    - Update particular document with put
+    - optional: Get all documents
+    - optional: Delete a particular document
+    
+    A document to be created contains
+    - a title min. 2 characters, max. 50 characters
+    - a file name
+    - the binary of the document
+    - a creation user
+    
+    Additionally to that, a document already in the system contains
+    - an identifier
+    - a creation and updating date
+    - an updating user
+    
+    - optional a query to the document array can be given
+    
+    Errors needed:
+    
+    - post
+      - 400 Bad request 
+      - 406 title, document name already exist
+    
+    - put
+      - 400 Bad request
+      - 404 Document not found
+      - 406 Document not accepted
+    
+    - get by id
+      - 400 Bad request
+      - 404 Document not found
+    
+    - get by query
+      - 400 Bad request
+      Found array can be empty - therefore 404 is not valid here
+    
+    - delete
+      - 400 Bad request
+      - 404 Not found
+    
+    Security is given as OAuth2 with the scopes read, write, and admin operations.
+
   version: 1.0.0
 servers:
-# Servers should be filled as good as you can
-# In an early state of work it might be that you don't have a real server name
-# But give it even a mock server name to make the base path explicit
-  - url: 'https://apis.mycompany.com/document-management'
-  - url: 'https://test.apis.mycompany.com/document-management'
-  - url: 'https://dev.apis.mycompany.com/document-management'
+  - url: 'https://apis.mycompany.com/document-management/'
+  - url: 'https://test-apis.mycompany.com/document-management/'
+  - url: 'https://dev-apis.mycompany.com/document-management/'
+
+tags:
+  # Tags are used to structure the endpoints, so they can be easier be listed e.g. in an HTML
+  # document. Endpoints can get multiple endpoints.
+  - name: Get document(s)
+    description: All endpoints where you can get documents
+  - name: Manipulate document(s)
+    description: All endpoints which allow to manipulate documents
+  - name: Dangerous operation
+    description: All endpoints which might include dangerous changes like changing the title
 paths:
+
   /documents:
     get:
-      summary: Delivers back all documents
-      operationId: getDocuments
+      description: Delivers back all existing documents
+      operationId: getAllDocuments
+      tags:
+        - Get document(s)
+      security:
+        - OAuth2:
+            - read
+      parameters:
+        - $ref: '#/components/parameters/DocumentName'
+        - $ref: '#/components/parameters/Title'
       responses:
         200:
-          $ref: '#/components/responses/Documents'
+          $ref: '#/components/responses/DocumentList'
+        400:
+          $ref: '#/components/responses/BadRequest'
+        401:
+          $ref: '#/components/responses/Unauthorized'
+
 
   /document:
     post:
-      summary: Creates a new document based on
+      description: Creates a new document in the system
       operationId: createDocument
+      tags:
+        - Manipulate document(s)
+      security:
+        - OAuth2:
+            - write
       requestBody:
-        $ref: '#/components/requestBodies/NewDocument'
+        $ref: '#/components/requestBodies/DocumentToBeCreated'
       responses:
         200:
-          $ref: '#/components/responses/DocumentReference'
+          $ref: '#/components/schemas/Reference'
+        400:
+          $ref: '#/components/responses/BadRequest'
+        # Response code in HTTP 401 is used when a certain authorization for a resource is required
+        # It is comparable to 403 Forbidden.
+        401:
+          $ref: '#/components/responses/Unauthorized'
+        406:
+          $ref: '#/components/responses/DocumentNotAccepted'
+
   /document/{id}:
     get:
-      summary: Delivers back a document based on its id
+      description: Gives back a document by its ID
       operationId: getDocumentById
+      tags:
+        - Get document(s)
+      security:
+        - OAuth2:
+            - read
       parameters:
-        - $ref: '#/components/parameters/documentId'
+        - $ref: '#/components/parameters/Id'
       responses:
         200:
-          $ref: '#/components/responses/DocumentReference'
+          $ref: '#/components/responses/SingleDocument'
+        400:
+          $ref: '#/components/responses/BadRequest'
+        401:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/DocumentNotFound'
 
     put:
-      summary: Changes an existing document
-      operationId: changeDocumentById
+      description: Changes a document given by its ID
+      operationId: updateDocumentById
+      tags:
+        - Manipulate document(s)
+        - Dangerous operation
+      security:
+        - OAuth2:
+            - write
       parameters:
-        - $ref: '#/components/parameters/documentId'
+        - $ref: '#/components/parameters/Id'
       requestBody:
-        $ref: '#/components/requestBodies/Document'
+        $ref: '#/components/requestBodies/DocumentToBeUpdated'
       responses:
         200:
           $ref: '#/components/responses/DocumentReference'
+        400:
+          $ref: '#/components/responses/BadRequest'
+        401:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/DocumentNotFound'
+        406:
+          $ref: '#/components/responses/DocumentNotAccepted'
 
-
-    # optional
     delete:
-      summary: Deletes a particular document
+      description: Deletes an existing document
       operationId: deleteDocumentById
+      tags:
+        - Dangerous operation
+      security:
+        - OAuth2:
+            - admin
       parameters:
-        - $ref: '#/components/parameters/documentId'
+        - $ref: '#/components/parameters/Id'
       responses:
         200:
           description: Successful operation
+        400:
+          $ref: '#/components/responses/BadRequest'
+        401:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/DocumentNotFound'
 
 components:
+
+  parameters:
+    DocumentName:
+      name: documentName
+      in: query
+      required: false
+      description: |
+        Document name of the document as search parameter, tailing white spaces are added by the implementation
+      schema:
+        type: string
+        pattern: ^\w+.{0,4}$
+        example: MyDocu
+
+    Id:
+      name: id
+      in: path
+      required: true
+      description: Identifier of the object to be accessed
+      schema:
+        type: string
+        format: uuid
+        example: 239a2c52-e66c-40d1-bf7f-f61097c49703
+
+    Title:
+      name: title
+      in: query
+      required: false
+      description: Title of the document as search parameter, tailing white spaces are added by the implementation
+      schema:
+        type: string
+        pattern: ^[A-Za-z]{1}[A-Za-z0-9\s]{0,49}$
+        example: My Docu
+
   requestBodies:
-    NewDocument:
-      description: A document which should be created in the document management system
+    DocumentToBeCreated:
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/DocumentToBeCreated'
-    Document:
-      description: A full document to be changed
+
+    DocumentToBeUpdated:
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/Document'
-  parameters:
-    documentId:
-      name: id
-      in: path
-      schema:
-        type: string
-        required: true
-        format: uuid
-        example: 239a2c52-e66c-40d1-bf7f-f61097c49703
+
   responses:
-    DocumentReference:
-      description: Delivers back the reference to a created or changed document
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Reference'
-    Documents:
-      description: Delivers back documents
+
+    BadRequest:
+      description: Bad request
       content:
         application/json:
           schema:
             type: array
-            minItems: 0
+            minItems: 1
+            items:
+              $ref: '#/components/schemas/Message'
+
+    DocumentNotFound:
+      description: Document not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Message'
+
+    DocumentNotAccepted:
+      description: Document request could not be accepted
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Message'
+
+
+    DocumentList:
+      description: Successful operation
+      content:
+        application/json:
+          schema:
+            type: array
             items:
               $ref: '#/components/schemas/Document'
+
+    DocumentReference:
+      description: Successful operation
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Reference'
+
+    SingleDocument:
+      description: Successful operation
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Document'
+
+    # Response code in HTTP 401 is used when a certain authorization for a resource is required
+    # It is comparable to 403 Forbidden.
+    Unauthorized:
+      description: Request requires authorization
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Message'
+
+
   schemas:
+    # It is good practice to order the definitions alphabetical
+    # so, it is easier to find in the structure
+
     Document:
-      description: A document which can be downloaded and manipulated
+      description: A document with ID
       type: object
       allOf:
         - $ref: '#/components/schemas/DocumentToBeCreated'
@@ -115,85 +294,110 @@ components:
         - self
       properties:
         self:
-          description: Self id of the document
+          description: Self identification of a document
           type: string
           format: uuid
           example: 239a2c52-e66c-40d1-bf7f-f61097c49703
-        createdBy:
-          $ref: '#/components/schemas/Reference'
         createdAt:
-          description: Time when the document has been stored
+          description: Time when document has been created
           type: string
-          # For string formats see https://swagger.io/docs/specification/data-models/data-types/#string
           format: date-time
           example: 2024-01-03T12:56T+01:00
-        updatedBy:
-          $ref: '#/components/schemas/Reference'
         updatedAt:
-          description: Time when the document has been updated
+          description: Update time of the document
           type: string
           format: date-time
-          example: 2024-01-03T14:35T+01:00
+          example: 2024-01-03T23:56T+01:00
+        updatedBy:
+          $ref: '#/components/schemas/Reference'
 
     DocumentToBeCreated:
-      description: A document which should be uploaded and created in the document management system
+      description: Document to be created in the system
       type: object
       required:
-        - fileName
-        - documentBinary
+        - title
+        - document
       properties:
         title:
-          description: Title of the document
+          description: Title of the document - it is used to show the document in the UI
           type: string
-          minLength: 2
-          maxLength: 50
-          example: Welcome to DDD
+          pattern: ^[A-Za-z]{1}[A-Za-z0-9\s]{0,49}$
+          example: My Document
         fileName:
           description: File name of the document
           type: string
-          minLength: 2
-          maxLength: 50
-          example: WelcomeDocument.docx
-        mimeType:
-          description: Mimetype of the document
-          type: string
-          # see https://stackoverflow.com/questions/4212861/what-is-a-correct-mime-type-for-docx-pptx-etc
-          enum:
-            - application/vnd.openxmlformats-officedocument.wordprocessingml.document
-            - application/vnd.openxmlformats-officedocument.presentationml.presentation
-          example: application/vnd.openxmlformats-officedocument.wordprocessingml.document
-        documentBinary:
+          pattern: ^\w+.(docx|pdf|pptx|exec)$
+          example: My_Document.docx
+        document:
           description: Binary of the according document
           type: string
-          # Base 64 encoded
-          format: byte
+          format: binary
+        createdBy:
+          $ref: '#/components/schemas/Reference'
 
+    Message:
+      description: Message to indicate a result of an operation or an error
+      type: object
+      required:
 
+      properties:
+        self:
+          description: Identifier of the according message - can be used to localize messages
+          type: string
+          format: uuid
+          example: 65971d1b-d5d2-4850-adcd-a40ad8c60149
+        title:
+          description: Title of the message
+          type: string
+          minLength: 2
+          maxLength: 2
+          example:  Not successful operation
+        detail:
+          description: More detailed description of the message
+          type: string
+          minLength: 2
+          maxLength: 2048
+          example: Document couldn't be created please check your document name
+        level:
+          description: The level gives an indication about severeness of the message
+          type: string
+          enum:
+            - DEBUG
+            - INFO
+            - ERROR_NORMAL
+            - ERROR_FATAL
+          example: INFO
 
     Reference:
-      description: Reference to an object to access it directly
+      description: A reference to an business object e.g. a document
       type: object
       required:
         - id
-        - reference
+        - url
       properties:
-        type:
-          description: Delivers back the type of the delivered back object
-          type: string
-          minLength: 2
-          maxLength: 2054
-          enum:
-            - Document
-            - User
-          example: Document
         id:
-          description: Self id of the document
+          description: Unique identifier of the object
           type: string
           format: uuid
           example: 239a2c52-e66c-40d1-bf7f-f61097c49703
-        reference:
-          description: URI to access the docuement
+        url:
+          description: Link to the according business object
           type: string
           format: uri
-          example: https://apis.mycompany.com/document-management/document/239a2c52-e66c-40d1-bf7f-f61097c49703
-  
+          example: https://apis.mycompany.com/document/239a2c52-e66c-40d1-bf7f-f61097c49703
+
+  securitySchemes:
+    # For possible security schemes, check https://swagger.io/docs/specification/authentication/
+    OAuth2:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: https://iam.mycompany.com/oauth/authorize
+          tokenUrl: https://iam.mycompany.com/oauth/token
+          scopes:
+            read: Grants read access
+            write: Grants write access
+            admin: Grants admin access
+
+
+
