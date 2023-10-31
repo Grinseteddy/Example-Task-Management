@@ -1,0 +1,197 @@
+openapi: 3.0.3
+info:
+  title: Document Management
+  description: |
+    Document Management API defined as consumer to upload and download documents
+    - Create document with post
+    - Download particular document with get
+    - Update particular document with put
+    - optional: Get all documents
+    - optional: Delete a particular document
+  version: 1.0.0
+servers:
+  # Servers should be given - even though the real servers don't exist yet
+  - url: 'https://apis.mycompany.com/document-management/'
+  - url: 'https://test-apis.mycompany.com/document-management/'
+  - url: 'https://dev-apis.mycompany.com/document-management/'
+paths:
+  ########################optional##################################
+  # Multiple documents should get a plural
+  /documents:
+    get:
+      description: Delivers back all existing documents
+      operationId: getAllDocuments
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                minItems: 0
+                items:
+                  $ref: '#/components/schemas/Document'
+  ########################end########################################
+
+  # Single documents get a singular
+  /document:
+    post:
+      description: Creates a new document in the system
+      # Operation ID is needed in the implementation especially for generators
+      operationId: createDocument
+      # Request body contains all things to create a document
+      # Request bodies can be defined directly in the post or better in the components
+      requestBody:
+        # # refers to a certain point in the definition
+        $ref: '#/components/requestBodies/DocumentToBeCreated'
+      responses:
+        # For the walking skeleton we define only the successful operation
+        # Responses are structured by http response codes
+        # https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
+        200:
+          # A response code needs a description mandatory
+          description: Successful operation
+          content:
+            # We await back a reference to the new document
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Reference'
+
+  # Particular documents are accessed with an id
+  /document/{id}:
+    get:
+      description: Gives back a document by its ID
+      operationId: getDocumentById
+      parameters:
+      # parameters contain everything to filter the according response
+      # e.g. in our case the document by its ID
+      # parameters can be defined in the components
+        - $ref: '#/components/parameters/Id'
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+
+    put:
+      description: Changes a document given by its ID
+      operationId: updateDocumentById
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        # Contains the full document
+        $ref: '#/components/requestBodies/DocumentToBeUpdated'
+      responses:
+        200:
+          # A reference to the updated document is expected
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Reference'
+
+    #####################optional#################################
+    delete:
+      description: Deletes an existing document
+      operationId: deleteDocumentById
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        200:
+          description: Successful operation
+    #######################end####################################
+
+
+
+components:
+
+  parameters:
+    # Parameter for a document ID
+    Id:
+      name: id
+      # Parameters can be given as path (like here) or in a query
+      # with name and equal sign after a question mark
+      in: path
+      required: true
+      description: Identifier of the object to be accessed
+      schema:
+        type: string
+        # For string formats see https://swagger.io/docs/specification/data-models/data-types/#string
+        format: uuid
+        example: 239a2c52-e66c-40d1-bf7f-f61097c49703
+
+  requestBodies:
+
+    DocumentToBeCreated:
+      content:
+        application/json:
+          # The schema can be described in the schemas
+          schema:
+            $ref: '#/components/schemas/DocumentToBeCreated'
+            # # refers to a certain point in the definition
+    DocumentToBeUpdated:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Document'
+
+  schemas:
+    # It is good practice to order the definitions alphabetical
+    # so, it is easier to find in the structure
+
+    Document:
+      # A document contains an identifier
+      description: A document with ID
+      type: object
+      required:
+        - self
+      properties:
+        self:
+          description: Self identification of a document
+          type: string
+          # For string formats see https://swagger.io/docs/specification/data-models/data-types/#string
+          format: uuid
+          example: 239a2c52-e66c-40d1-bf7f-f61097c49703
+
+
+    DocumentToBeCreated:
+      # For the walking skeleton only a title is necessary
+      # all other properties are added later
+      description: Document to be created in the system
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          description: Title of the document - it is used to show the document in the UI
+          type: string
+          # String types should be limited so that they can easily be validated
+          minLength: 2
+          maxLength: 50
+          # Each property should get an example so that it is easier to understand
+          # what is expected
+          example: My Document
+
+    Reference:
+      description: A reference to an business object e.g. a document
+      type: object
+      required:
+        - id
+        - url
+      properties:
+        id:
+          description: Unique identifier of the object
+          type: string
+          # UUID is a predefined  format of strings
+          # For string formats see https://swagger.io/docs/specification/data-models/data-types/#string
+          format: uuid
+          example: 239a2c52-e66c-40d1-bf7f-f61097c49703
+        url:
+          description: Link to the according business object
+          type: string
+          format: uri
+          example: https://apis.mycompany.com/document/239a2c52-e66c-40d1-bf7f-f61097c49703
+
+  
