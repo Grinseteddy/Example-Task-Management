@@ -8,6 +8,20 @@ info:
     - Update particular document with put
     - optional: Get all documents
     - optional: Delete a particular document
+    
+    A document to be created contains
+    - a title min. 2 characters, max. 50 characters
+    - a file name
+    - the binary of the document
+    - a creation user
+    
+    Additionally to that, a document already in the system contains
+    - an identifier
+    - a creation and updating date
+    - an updating user
+    
+    - optional a query to the document array can be given
+
   version: 1.0.0
 servers:
   # Servers should be given - even though the real servers don't exist yet
@@ -21,6 +35,9 @@ paths:
     get:
       description: Delivers back all existing documents
       operationId: getAllDocuments
+      parameters:
+        - $ref: '#/components/parameters/DocumentName'
+        - $ref: '#/components/parameters/Title'
       responses:
         200:
           description: Successful operation
@@ -37,22 +54,13 @@ paths:
   /document:
     post:
       description: Creates a new document in the system
-      # Operation ID is needed in the implementation especially for generators
       operationId: createDocument
-      # Request body contains all things to create a document
-      # Request bodies can be defined directly in the post or better in the components
       requestBody:
-        # # refers to a certain point in the definition
         $ref: '#/components/requestBodies/DocumentToBeCreated'
       responses:
-        # For the walking skeleton we define only the successful operation
-        # Responses are structured by http response codes
-        # https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
         200:
-          # A response code needs a description mandatory
           description: Successful operation
           content:
-            # We await back a reference to the new document
             application/json:
               schema:
                 $ref: '#/components/schemas/Reference'
@@ -63,9 +71,6 @@ paths:
       description: Gives back a document by its ID
       operationId: getDocumentById
       parameters:
-      # parameters contain everything to filter the according response
-      # e.g. in our case the document by its ID
-      # parameters can be defined in the components
         - $ref: '#/components/parameters/Id'
       responses:
         200:
@@ -81,11 +86,9 @@ paths:
       parameters:
         - $ref: '#/components/parameters/Id'
       requestBody:
-        # Contains the full document
         $ref: '#/components/requestBodies/DocumentToBeUpdated'
       responses:
         200:
-          # A reference to the updated document is expected
           description: Successful operation
           content:
             application/json:
@@ -108,29 +111,53 @@ paths:
 components:
 
   parameters:
-    # Parameter for a document ID
+    #####################optional#################################
+    DocumentName:
+      name: documentName
+      in: query
+      required: false
+      description: |
+        Document name of the document as search parameter, tailing white spaces are added by the implementation
+      schema:
+        type: string
+        pattern: ^\w+.{0,4}$
+        example: MyDocu
+    #######################end####################################
+
     Id:
       name: id
-      # Parameters can be given as path (like here) or in a query
-      # with name and equal sign after a question mark
       in: path
       required: true
       description: Identifier of the object to be accessed
       schema:
         type: string
-        # For string formats see https://swagger.io/docs/specification/data-models/data-types/#string
         format: uuid
         example: 239a2c52-e66c-40d1-bf7f-f61097c49703
 
-  requestBodies:
+    #####################optional#################################
+    Title:
+      name: title
+      in: query
+      required: false
+      description: Title of the document as search parameter, tailing white spaces are added by the implementation
+      schema:
+        type: string
+        # Regex can limit input parameters to characters in the beginning
+        # and to characters and numbers tailing
+        # min length should be 1 (white space is added by application) maximum length should be 50
+        # That should match the definition of the title in the object as well
+        pattern: ^[A-Za-z]{1}[A-Za-z0-9\s]{0,49}$
+        example: My Docu
+    #######################end####################################
 
+
+  requestBodies:
     DocumentToBeCreated:
       content:
         application/json:
-          # The schema can be described in the schemas
           schema:
             $ref: '#/components/schemas/DocumentToBeCreated'
-            # # refers to a certain point in the definition
+
     DocumentToBeUpdated:
       content:
         application/json:
@@ -142,37 +169,64 @@ components:
     # so, it is easier to find in the structure
 
     Document:
-      # A document contains an identifier
       description: A document with ID
       type: object
+      # Document should contain (inherit) from Document to Be Created
+      # That can be expressed by allOf https://swagger.io/docs/specification/data-models/oneof-anyof-allof-not/
+      allOf:
+        - $ref: '#/components/schemas/DocumentToBeCreated'
       required:
         - self
       properties:
         self:
           description: Self identification of a document
           type: string
-          # For string formats see https://swagger.io/docs/specification/data-models/data-types/#string
           format: uuid
           example: 239a2c52-e66c-40d1-bf7f-f61097c49703
-
+        createdAt:
+          description: Time when document has been created
+          type: string
+          # see https://swagger.io/docs/specification/data-models/data-types/#string
+          format: date-time
+          example: 2024-01-03T12:56T+01:00
+        updatedAt:
+          description: Update time of the document
+          type: string
+          format: date-time
+          example: 2024-01-03T23:56T+01:00
+        updatedBy:
+          $ref: '#/components/schemas/Reference'
 
     DocumentToBeCreated:
-      # For the walking skeleton only a title is necessary
-      # all other properties are added later
       description: Document to be created in the system
       type: object
       required:
         - title
+        - document
       properties:
         title:
           description: Title of the document - it is used to show the document in the UI
           type: string
-          # String types should be limited so that they can easily be validated
-          minLength: 2
-          maxLength: 50
-          # Each property should get an example so that it is easier to understand
-          # what is expected
+          # Min length with min and max changed to pattern
+          pattern: ^[A-Za-z]{1}[A-Za-z0-9\s]{0,49}$
           example: My Document
+        fileName:
+          description: File name of the document
+          type: string
+          # Patterns can be given to string properties as Regular Expressions to ensure syntax correctness
+          # Allowed is file endings docx, pdf, pptx, and exec
+          # Regex can be tested https://regexr.com/3dm8n
+          pattern: ^\w+.(docx|pdf|pptx|exec)$
+          example: My_Document.docx
+        document:
+          description: Binary of the according document
+          type: string
+          # for format of strings for files see https://swagger.io/docs/specification/data-models/data-types/#string
+          format: binary
+        createdBy:
+          # creation user can be given as reference
+          # Use just a reference to a user - could be enhanced later e.g. by name and given name in case it is needed
+          $ref: '#/components/schemas/Reference'
 
     Reference:
       description: A reference to an business object e.g. a document
@@ -184,8 +238,6 @@ components:
         id:
           description: Unique identifier of the object
           type: string
-          # UUID is a predefined  format of strings
-          # For string formats see https://swagger.io/docs/specification/data-models/data-types/#string
           format: uuid
           example: 239a2c52-e66c-40d1-bf7f-f61097c49703
         url:
