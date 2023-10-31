@@ -31,6 +31,7 @@ info:
     - put
       - 400 Bad request
       - 404 Document not found
+      - 406 Document not accepted
     
     - get by id
       - 400 Bad request
@@ -49,17 +50,29 @@ servers:
   - url: 'https://apis.mycompany.com/document-management/'
   - url: 'https://test-apis.mycompany.com/document-management/'
   - url: 'https://dev-apis.mycompany.com/document-management/'
+
+tags:
+  # Tags are used to structure the endpoints, so they can be easier be listed e.g. in an HTML
+  # document. Endpoints can get multiple endpoints.
+  - name: Get document(s)
+    description: All endpoints where you can get documents
+  - name: Manipulate document(s)
+    description: All endpoints which allow to manipulate documents
+  - name: Dangerous operation
+    description: All endpoints which might include dangerous changes like changing the title
 paths:
 
   /documents:
     get:
       description: Delivers back all existing documents
       operationId: getAllDocuments
+      tags:
+        - Get document(s)
       parameters:
         - $ref: '#/components/parameters/DocumentName'
         - $ref: '#/components/parameters/Title'
 
-      # Responses can be defined in responses in the components
+      # Responses can be defined in responses in the components,
       # Especially for the error message it is valid because, they are needed several times
       # The successful operations are refactored
       responses:
@@ -72,6 +85,8 @@ paths:
     post:
       description: Creates a new document in the system
       operationId: createDocument
+      tags:
+        - Manipulate document(s)
       requestBody:
         $ref: '#/components/requestBodies/DocumentToBeCreated'
       responses:
@@ -86,6 +101,8 @@ paths:
     get:
       description: Gives back a document by its ID
       operationId: getDocumentById
+      tags:
+        - Get document(s)
       parameters:
         - $ref: '#/components/parameters/Id'
       responses:
@@ -99,6 +116,9 @@ paths:
     put:
       description: Changes a document given by its ID
       operationId: updateDocumentById
+      tags:
+        - Manipulate document(s)
+        - Dangerous operation
       parameters:
         - $ref: '#/components/parameters/Id'
       requestBody:
@@ -110,10 +130,14 @@ paths:
           $ref: '#/components/responses/BadRequest'
         404:
           $ref: '#/components/responses/DocumentNotFound'
+        406:
+          $ref: '#/components/responses/DocumentNotAccepted'
 
     delete:
       description: Deletes an existing document
       operationId: deleteDocumentById
+      tags:
+        - Dangerous operation
       parameters:
         - $ref: '#/components/parameters/Id'
       responses:
