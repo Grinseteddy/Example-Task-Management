@@ -14,3 +14,5 @@ and [Event Storming](https://miro.com/app/board/uXjVNX-5o1M=/?moveToWidget=34587
 
 1. [Exercise 1](./Exercise%201/README.md)
 Discussion of the necessary data exchange using a context map out of a DDD process.
+2. [Exercise 2](./Exercise%202/README.md)
+Create a consumer-driven API for the necessary Document Management System.
