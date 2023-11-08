@@ -45,7 +45,7 @@ paths:
         # # refers to a certain point in the definition
         $ref: '#/components/requestBodies/DocumentToBeCreated'
       responses:
-        # For the walking skeleton we define only the successful operation
+        # For the walking skeleton, we define only the successful operation
         # Responses are structured by http response codes
         # https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
         200:
