@@ -155,7 +155,6 @@ components:
           format: uuid
           example: 239a2c52-e66c-40d1-bf7f-f61097c49703
 
-
     DocumentToBeCreated:
       # For the walking skeleton only a title is necessary
       # all other properties are added later
