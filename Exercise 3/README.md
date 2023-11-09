@@ -79,7 +79,6 @@ allOf, etc. To use all things of one object in another object, you can use 'allO
 
 >***Tip:***\
 _Date and Date-Time are modeled in OpenAPI as string. You need to define the according
-
 [format](https://swagger.io/docs/specification/data-models/data-types/#string) for dates._
 
 ````yaml
