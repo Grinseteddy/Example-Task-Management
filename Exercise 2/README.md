@@ -26,6 +26,13 @@ The necessary objects should be created empty or with some identifiers._
 - Document object with a 'self' property as unique identifier
 - Reference object with id and uri
 
+>***Tip:***\
+_When you define string properties, you should limit the implementation corridor.
+So, it would be a good idea, to limit the size of the string by a minimal length and a maximal length.
+Furthermore, you can give a string a certain format as e.g., email or uuid.
+([OpenAPI specification: string](https://swagger.io/docs/specification/data-models/data-types/#string)).
+_
+
 
 ```yaml
  info:
@@ -38,14 +45,44 @@ The necessary objects should be created empty or with some identifiers._
   schemas:
     Document:
       description: #...
+      type: object
+      required:
+        - self
       properties:
-       #...
+        self:
+          description: #...
+          type: string
+          format: uuid
+          example: # uuid example
     DocumentToBeCreated:
       description: #...
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          description: #...
+          type: string
+          minLength: # some number >1
+          maxLength: # some number > minLength
+          example: # example
     Reference:
       description: #...
+      type: object
+      required:
+        - id
+        - url
       properties:
-        #...
+        id:
+          description: #...
+          type: string
+          format: uuid
+          example: # uuid example
+        url:
+          description: #...
+          type: string
+          format: uri
+          example: # url example
 ```
 
 >***Tip:***\
@@ -89,7 +126,7 @@ as reference._
 ````yaml
 components:
   requestBodies:
-    DocumentToCreated:
+    DocumentToBeCreated:
       description: #...
       content:
         application/json:
@@ -102,6 +139,9 @@ components:
 
 
 #### 2.3 Endpoint To Get and Change A Document By ID
+
+- Define an endpoint to retrieve a document by its ID (get)
+- Define an endpoint to update a document by its ID (put)
 
 >***Tip:***\
 _Define a parameter where the ID can be given.
@@ -139,6 +179,10 @@ paths:
      operationId: #...
      parameters:
       - $ref: '#...'
+     requestBodies:
+       #...
+      DocumentToBeUpdated:
+        # Define a request body for the update using the Document object
      responses:
       200:
        description: #...
@@ -147,9 +191,6 @@ paths:
          schema:
           $ref: '#...'
 ````
-
-- Define an endpoint to retrieve a document by its ID (get)
-- Define an endpoint to update a document by its ID (put)
 
 #### 2.4 OPTIONAL Delete by ID
 
@@ -199,3 +240,156 @@ paths:
 ````
 
 [Sample Solution](../API%20Definitions/Synchronous%20APIs/DocumentManagementDesign/DocumentMangementWalkingSkeleton.yaml)
+
+# Excercise 3 - Define Properties for the Objects
+
+### 3.1 Define Properties for DocumentToBeCreated
+
+- Fill the object DocumentToBeCreated with
+    - Title
+    - File Name
+    - Document
+    - Created By
+
+  Mark the necessary attributes in the required section.
+
+>***Tip:***\
+>_Each property must have
+>- a desription
+   _
+
+> ***Tip:***\
+_Title and File Name can be strings. Please define for both at least a minimal length and a maximal length.
+Check [here](https://swagger.io/docs/specification/data-models/data-types/#string)
+how to define minimal length and maximal length for strings in OpenAPI.\
+The document itself needs to be binary - check [here](https://swagger.io/docs/specification/data-models/data-types/#string)
+how to define binaries in OpenAPI_
+
+>***Tip:***\
+_Sometimes it might be helpful to restrict the strings by regular expression. Check if the regular expression
+'^\w+.(docx|pdf|pptx|exec)$' might be helpful to restrict the file formats only to Word, PDF, or PPTX documents._
+
+>***Tip:***\
+_'Created by' should be some kind of user of the system. Because we define the Task Management System and the
+Document Management system only out of the consumer perspective, we want only to exchange the user as a reference._
+
+````yaml
+components:
+#...
+  schemas:
+      #... 
+      DocumentToBeCreated:
+        description: #...
+        operationId: #...
+        type: object
+        required:
+          - title
+          #...
+        properties:
+          title:
+            description: #...
+            type: string
+            minLength: #...
+            maxLength: #...
+            pattern: #...
+            example: #...
+          fileName:
+            description: #...
+            type: string
+            pattern: #...
+            example: #...
+          document:
+            description: #...
+            type:
+            format: binary
+            # here without example, because that would be too large
+````
+
+### 3.2 Enhance Document Object
+
+- Fill the Document object with the same data as DocumentToBeCreated
+- Fill the Document object additionally with
+    - createdAt
+    - updatedBy
+    - updatedAt
+
+  Mark the necssary properties in the required section.
+
+>***Tip:***\
+_OpenAPI provides mechanisms to model inheritance and polymorphism even for API objects.
+[Check](https://swagger.io/docs/specification/data-models/inheritance-and-polymorphism/) the possibilities of oneOf,
+allOf, etc. To use all things of one object in another object, you can use 'allOf'_
+
+>***Tip:***\
+_Date and Date-Time are modeled in OpenAPI as string. You need to define the according
+[format](https://swagger.io/docs/specification/data-models/data-types/#string) for dates._
+
+````yaml
+components:
+#...
+  schemas:
+  #...
+    Document:
+      description: #...
+      type: object
+      required:
+        - self
+        #...
+      allOf:
+        - $ref: '#/components/schemas/DocumentToBeCreated'
+      properties:
+        self:
+          #...
+        createdAt:
+          description: #...
+          type: string
+          format: date
+          example: #...
+        updatedBy:
+          $ref: '#...'
+        updatedAt:
+          description: #...
+          type: string
+          format: date
+          example: #...
+````
+
+### 3.3 OPTIONAL Define A Query for The Document List
+
+>***Tip:***\
+_To define a query, the parameters can be defined in the parameters section. Parameters are defined with name and in._
+
+- Define query parameters for the documents endpoint using document name and title.
+
+````yaml
+path:
+#...
+  /documents:
+    get:
+      #...
+        parameters:
+          # use here the defined parameters
+#...
+components:
+#...
+  parameters:
+    #...
+    DocumentName:
+      name: # name starts with a small letter
+      in: query
+      required: false
+      description: #...
+      schema:
+        type: #...
+        pattern: # use the name pattern as defined in DocumentToBeCreated
+        example: #...
+    Title:
+      name: # ...
+      in: query
+      required: false
+      description: #...
+      schema:
+        type: #...
+        pattern: # use the same pattern as for the title in the DocumentToBeCreated
+        example: #...
+````

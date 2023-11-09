@@ -17,3 +17,4 @@ Discussion of the necessary data exchange using a context map out of a DDD proce
 2. [Exercise 2](./Exercise%202/README.md)
 Create a consumer-driven API for the necessary Document Management System.
 3. [Exercise 3](./Exercise%203/README.md)
+Define Properties for the Objects
