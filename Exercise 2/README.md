@@ -1,4 +1,4 @@
-# Exercise 2 - Create A Consumer-Driven API for The Document Management Component
+# Exercise 2 - Create a Consumer-Driven API for the Document Management Component
 
 ### 1. Create an OpenAPI file called "DocumentManagement.yaml"
 - Select OpenAPI
@@ -11,7 +11,7 @@ you need to change it later when you know the real URLs. Define URLs for develop
 
 [Sample Solution](../API%20Definitions/Synchronous%20APIs/DocumentManagementDesign/DocumentMangementInitialFilling.yaml)
 
-### 2. Create A Walking Skeleton<br>
+### 2. Create a Walking Skeleton<br>
 
 > ***Tip:***\
 _The walking skeleton should contain the necessary paths with a successful response.
@@ -113,14 +113,14 @@ paths:
           description: Successful operation
           content:
             application/json:
-              # Reference to the "Reference" object          
+              # Reference to the "Reference" object
 ````
 
 > ***Tip:***\
-_Successful responses need at least a description. The object delivered back can be entered as content with the format 
+_Successful responses need at least a description. The object delivered back can be entered as content with the format
 e.g., application/json. Responses can be defined in the area "responses" below components and can be referenced using
 '$ref:' expression.\
->The request body can be defined inside the endpoint or it can be defined below "components" and "requestBodies" 
+>The request body can be defined inside the endpoint or it can be defined below "components" and "requestBodies"
 as reference._
 
 ````yaml
@@ -138,7 +138,7 @@ components:
 
 
 
-#### 2.3 Endpoint To Get and Change A Document By ID
+#### 2.3 Endpoint To Get and Change a Document By ID
 
 - Define an endpoint to retrieve a document by its ID (get)
 - Define an endpoint to update a document by its ID (put)
@@ -146,7 +146,7 @@ components:
 >***Tip:***\
 _Define a parameter where the ID can be given.
 You can define the parameter in the "parameters" section below components.
-The parameter has to have a name and an "in:", where is defined, how to give over the parameter. 
+The parameter has to have a name and an "in:", where is defined, how to give over the parameter.
 It can be "query" or as in our case as "path" variable._
 
 ````yaml
@@ -224,19 +224,19 @@ Lists are modeled as arrays._
 
 ````yaml
 paths:
- /documents:
-  get:
-   description: #...
-   operationId: #...
-   responses:
-    200:
+  /documents:
+    get:
       description: #...
-      content:
-        application/json:
+      operationId: #...
+      responses:
+        200:
+        description: #...
+        content:
+          application/json:
           schema:
             type: array
             items:
-             $ref: '#...'
+            $ref: '#...'
 ````
 
 [Sample Solution](../API%20Definitions/Synchronous%20APIs/DocumentManagementDesign/DocumentMangementWalkingSkeleton.yaml)
@@ -277,7 +277,7 @@ Document Management system only out of the consumer perspective, we want only to
 components:
 #...
   schemas:
-      #... 
+      #...
       DocumentToBeCreated:
         description: #...
         operationId: #...
